@@ -73,10 +73,16 @@ The forwarder script connects to the local broker on the TX2 and the remote brok
 
 ## Cloud MQTT Broker
 
+The cloud MQTT broker was run as a container in the cloud VSI. 
 The cloud side of the MQTT Broker was also pretty simple. I created a container on my VSI using the same command line I used for the one on the TX2. So this created a Mosquitto Broker on the cloud side using Alpine Linux. I just needed to make sure I understood how to reach this broker which was as simple as using the VSI IP address and port binding 1883 through the docker run command:
 ```
 docker run --name mosquitto -p 1883:1883 -ti alpine sh
 ```
+
+For the cloud side messages were passed using the topic hw3faces versus hw3facestx2 that was used on the Jetson TX2. 
+
+In order to test this out, I sent text messages on the hw3faces topic to make sure they reached the right cloud broker instance. This was then extended to make sure those messages were received and stored in the Cloud Object Storage by the Image Processor container.
+
 
 ## Image Processor
 
@@ -84,11 +90,15 @@ The final stage in the pipeline involved taking the messages from the cloud MQTT
 ```
 docker run -v /mnt/mybucket:/mnt/mybucket --name imageprocessor -ti ubuntu bash
 ```
-Now I could save files in the container in /mnt/mybucket and they would automatically get synced to my Cloud Object Storage [here](https://cloud.ibm.com/objectstorage/crn%3Av1%3Abluemix%3Apublic%3Acloud-object-storage%3Aglobal%3Aa%2F2a62d5fa62a547508fdff9b8f5a93b50%3A0566f5f6-35be-4e30-949c-8e88fbef6794%3A%3A?bucket=priteshnpatel-bucket1&bucketRegion=us-east&endpoint=s3.us-east.cloud-object-storage.appdomain.cloud&paneId=bucket_overview)
+Now I could save files in the container in /mnt/mybucket and they would automatically get synced to my Cloud Object Storage [Link to Cloud Storage](https://cloud.ibm.com/objectstorage/crn%3Av1%3Abluemix%3Apublic%3Acloud-object-storage%3Aglobal%3Aa%2F2a62d5fa62a547508fdff9b8f5a93b50%3A0566f5f6-35be-4e30-949c-8e88fbef6794%3A%3A?bucket=priteshnpatel-bucket1&bucketRegion=us-east&endpoint=s3.us-east.cloud-object-storage.appdomain.cloud&paneId=bucket_overview)
 
 I wrote the ImageProc.py script to take the messages from the hwfaces topic of the Cloud MQTT Broker and save them as objects in Cloud Object Storage. The challenge here was creating new file names for each image so I used the date and time to name the files. This was the date and time of the image reception by the ImageProc script versus the date and time of the original capture. 
 
+The ImageProc.py script actually ran from /mnt/mybucket so it could save the images in its home directory and they would automatically get stored in the Cloud Object Storage. This also means that the script itself was also stored in Cloud Object Storage so could easily be ported across container instances. This saved having to copy the script back in if I had to get rid of a container instance and start it up again.
+
 
 ## Summary
+
+I successfully built all 5 stages of this pipeline and ran the operational system a couple of times. There are several different images in the cloud storage as well as some of the test text messages I used for debugging. The face detector could be improved to select which images to send better. I'm sure there are enhnacements that can be done there. All in all, I was happy with the results given the limited time I had to work on it. 
 
 This was a challenging project in that there were many times that I got stuck and struggled to understand what I needed to do or how to fix an issue I was running into. In retrospect this was not that hard now that I understand what I needed to do get it all working, but the journey itself took time and a lot of trial and error, troubleshooting, research, asking folks on Slack...etc. I also noticed that the order of starting up the services mattered. I would start both the brokers first, then the forwarder and image processor and finally the face detector. Sometimes if the order was different the clients would not connect or messages would not flow as expected. Now that I have this pipeline working I could use the top 4 components for many different usecases and probably easily extend them to serve multiple use cases simulataneously. The difference really comes down to changing the face detector to collect other types of information or do additional processing. I look forward to leveraging this architecture in the future.
