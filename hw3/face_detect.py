@@ -19,7 +19,6 @@ while(True):
     ret, frame = cap.read()
     print("frame captured")
 
-    print frame.shape
  # grayscale to save memory 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     
