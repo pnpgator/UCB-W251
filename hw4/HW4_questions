@@ -1,0 +1,28 @@
+HW4 Questions
+
+Pritesh Patel
+
+Name all the layers in the network, describe what they do.
+
+The first layer is the input layer with 24 inputs and outputs. That feeds a convolutional layer that has a kernel/filter size of 5x5 with stride of 1 step and uses a ReLU activation function. The next layer pools that using a 2x2 pooling and 2 step stride. Then another convolutional layer with 5x5 kernel/filter and but 16 filters and ReLU activation function which feeds another Pooling layer using a 3x3 pooling with stride 3. This feeds the output layer which uses a softmax probability with 10 classes (one for each digit).
+
+Experiment with the number and size of filters in each layer. Does it improve the accuracy?
+
+I found it very hard to compare results. In the end if you let the model run for several minutes they all seem to acheive 99%
+
+
+Remove the pooling layers. Does it impact the accuracy?
+
+Yes, removing the pooling layers seems to cap the accuracy on validation at around 0.90. 
+
+Add one more conv layer. Does it help with accuracy?
+
+It seems to hinder validation accuracy as well. 
+
+Increase the batch size. What impact does it have?
+Seems to hurt validation accuracy a little. 
+
+
+What is the best accuracy you can achieve? Are you over 99%? 99.5%?
+
+The results only go to 2 decimal places but sometimes I see 1 on training and 0.99 on validation. It seems that giving the model more time helps it get to 0.99 eventually.
